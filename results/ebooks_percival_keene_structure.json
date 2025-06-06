@@ -1,0 +1,289 @@
+{
+  "doc_name": "ebooks_percival_keene.txt",
+  "structure": [
+    {
+      "title": "The Project Gutenberg eBook of Percival Keene",
+      "start_index": 1,
+      "end_index": 1,
+      "nodes": [
+        {
+          "title": "CHAPTER ONE",
+          "start_index": 1,
+          "end_index": 9,
+          "node_id": "0001"
+        },
+        {
+          "title": "CHAPTER TWO",
+          "start_index": 9,
+          "end_index": 12,
+          "node_id": "0002"
+        },
+        {
+          "title": "CHAPTER THREE",
+          "start_index": 12,
+          "end_index": 19,
+          "node_id": "0003"
+        },
+        {
+          "title": "CHAPTER FOUR",
+          "start_index": 19,
+          "end_index": 23,
+          "node_id": "0004"
+        },
+        {
+          "title": "CHAPTER FIVE",
+          "start_index": 23,
+          "end_index": 27,
+          "node_id": "0005"
+        },
+        {
+          "title": "CHAPTER SIX",
+          "start_index": 27,
+          "end_index": 32,
+          "node_id": "0006"
+        },
+        {
+          "title": "CHAPTER SEVEN",
+          "start_index": 32,
+          "end_index": 38,
+          "node_id": "0007"
+        },
+        {
+          "title": "CHAPTER EIGHT",
+          "start_index": 38,
+          "end_index": 42,
+          "node_id": "0008"
+        },
+        {
+          "title": "CHAPTER NINE",
+          "start_index": 42,
+          "end_index": 49,
+          "node_id": "0009"
+        },
+        {
+          "title": "CHAPTER TEN",
+          "start_index": 49,
+          "end_index": 55,
+          "node_id": "0010"
+        },
+        {
+          "title": "CHAPTER ELEVEN",
+          "start_index": 55,
+          "end_index": 60,
+          "node_id": "0011"
+        },
+        {
+          "title": "CHAPTER TWELVE",
+          "start_index": 60,
+          "end_index": 66,
+          "node_id": "0012"
+        },
+        {
+          "title": "CHAPTER THIRTEEN",
+          "start_index": 66,
+          "end_index": 73,
+          "node_id": "0013"
+        },
+        {
+          "title": "CHAPTER FOURTEEN",
+          "start_index": 73,
+          "end_index": 81,
+          "node_id": "0014"
+        },
+        {
+          "title": "CHAPTER FIFTEEN",
+          "start_index": 81,
+          "end_index": 88,
+          "node_id": "0015"
+        },
+        {
+          "title": "CHAPTER SIXTEEN",
+          "start_index": 88,
+          "end_index": 111,
+          "node_id": "0016"
+        },
+        {
+          "title": "CHAPTER SEVENTEEN",
+          "start_index": 111,
+          "end_index": 119,
+          "node_id": "0017"
+        },
+        {
+          "title": "CHAPTER EIGHTEEN",
+          "start_index": 119,
+          "end_index": 128,
+          "node_id": "0018"
+        },
+        {
+          "title": "CHAPTER NINETEEN",
+          "start_index": 128,
+          "end_index": 147,
+          "node_id": "0019"
+        },
+        {
+          "title": "CHAPTER TWENTY",
+          "start_index": 147,
+          "end_index": 183,
+          "node_id": "0020"
+        },
+        {
+          "title": "CHAPTER TWENTY-ONE",
+          "start_index": 183,
+          "end_index": 186,
+          "node_id": "0021"
+        },
+        {
+          "title": "CHAPTER TWENTY-TWO",
+          "start_index": 186,
+          "end_index": 191,
+          "node_id": "0022"
+        },
+        {
+          "title": "CHAPTER TWENTY-THREE",
+          "start_index": 191,
+          "end_index": 206,
+          "node_id": "0023"
+        },
+        {
+          "title": "CHAPTER TWENTY-FOUR",
+          "start_index": 206,
+          "end_index": 219,
+          "node_id": "0024"
+        },
+        {
+          "title": "CHAPTER TWENTY-FIVE",
+          "start_index": 219,
+          "end_index": 253,
+          "node_id": "0025"
+        },
+        {
+          "title": "CHAPTER TWENTY-SIX",
+          "start_index": 253,
+          "end_index": 255,
+          "node_id": "0026"
+        },
+        {
+          "title": "CHAPTER TWENTY-SEVEN",
+          "start_index": 255,
+          "end_index": 259,
+          "node_id": "0027"
+        },
+        {
+          "title": "CHAPTER TWENTY-EIGHT",
+          "start_index": 259,
+          "end_index": 273,
+          "node_id": "0028"
+        },
+        {
+          "title": "CHAPTER TWENTY-NINE",
+          "start_index": 273,
+          "end_index": 291,
+          "node_id": "0029"
+        },
+        {
+          "title": "CHAPTER THIRTY",
+          "start_index": 291,
+          "end_index": 313,
+          "node_id": "0030"
+        },
+        {
+          "title": "CHAPTER THIRTY-ONE",
+          "start_index": 313,
+          "end_index": 324,
+          "node_id": "0031"
+        },
+        {
+          "title": "CHAPTER THIRTY-TWO",
+          "start_index": 324,
+          "end_index": 330,
+          "node_id": "0032"
+        },
+        {
+          "title": "CHAPTER THIRTY THREE",
+          "start_index": 330,
+          "end_index": 333,
+          "node_id": "0033"
+        },
+        {
+          "title": "CHAPTER THIRTY FOUR",
+          "start_index": 333,
+          "end_index": 337,
+          "node_id": "0034"
+        },
+        {
+          "title": "CHAPTER THIRTY FIVE",
+          "start_index": 337,
+          "end_index": 341,
+          "node_id": "0035"
+        },
+        {
+          "title": "CHAPTER THIRTY SIX",
+          "start_index": 341,
+          "end_index": 345,
+          "node_id": "0036"
+        },
+        {
+          "title": "CHAPTER THIRTY SEVEN",
+          "start_index": 345,
+          "end_index": 351,
+          "node_id": "0037"
+        },
+        {
+          "title": "CHAPTER THIRTY EIGHT",
+          "start_index": 351,
+          "end_index": 356,
+          "node_id": "0038"
+        },
+        {
+          "title": "CHAPTER THIRTY NINE",
+          "start_index": 356,
+          "end_index": 361,
+          "node_id": "0039"
+        },
+        {
+          "title": "CHAPTER FORTY",
+          "start_index": 361,
+          "end_index": 366,
+          "node_id": "0040"
+        },
+        {
+          "title": "CHAPTER FORTY ONE",
+          "start_index": 366,
+          "end_index": 370,
+          "node_id": "0041"
+        },
+        {
+          "title": "CHAPTER FORTY TWO",
+          "start_index": 370,
+          "end_index": 375,
+          "node_id": "0042"
+        },
+        {
+          "title": "CHAPTER FORTY THREE",
+          "start_index": 375,
+          "end_index": 379,
+          "node_id": "0043"
+        },
+        {
+          "title": "CHAPTER FORTY FOUR",
+          "start_index": 379,
+          "end_index": 383,
+          "node_id": "0044"
+        },
+        {
+          "title": "CHAPTER FORTY FIVE",
+          "start_index": 383,
+          "end_index": 387,
+          "node_id": "0045"
+        },
+        {
+          "title": "CHAPTER FORTY SIX",
+          "start_index": 387,
+          "end_index": 400,
+          "node_id": "0046"
+        }
+      ],
+      "node_id": "0000"
+    }
+  ]
+}

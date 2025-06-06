@@ -2,6 +2,7 @@ import tiktoken
 import openai
 import logging
 import os
+import re
 from datetime import datetime
 import time
 import json
@@ -292,25 +293,26 @@ def sanitize_filename(filename, replacement='-'):
     # Null can't be represented in strings, so we only handle '/'.
     return filename.replace('/', replacement)
 
-def get_pdf_name(pdf_path):
-    # Extract PDF name
-    if isinstance(pdf_path, str):
-        pdf_name = os.path.basename(pdf_path)
-    elif isinstance(pdf_path, BytesIO):
-        pdf_reader = PyPDF2.PdfReader(pdf_path)
+def get_document_name(doc_path):
+    # Extract document name for both PDF and TXT files
+    if isinstance(doc_path, str):
+        doc_name = os.path.basename(doc_path)
+    elif isinstance(doc_path, BytesIO):
+        # For BytesIO, assume it's a PDF and try to get title from metadata
+        pdf_reader = PyPDF2.PdfReader(doc_path)
         meta = pdf_reader.metadata
-        pdf_name = meta.title if meta and meta.title else 'Untitled'
-        pdf_name = sanitize_filename(pdf_name)
-    return pdf_name
+        doc_name = meta.title if meta and meta.title else 'Untitled'
+        doc_name = sanitize_filename(doc_name)
+    return doc_name
 
 
 class JsonLogger:
     def __init__(self, file_path):
-        # Extract PDF name for logger name
-        pdf_name = get_pdf_name(file_path)
+        # Extract document name for logger name
+        doc_name = get_document_name(file_path)
             
         current_time = datetime.now().strftime("%Y%m%d_%H%M%S")
-        self.filename = f"{pdf_name}_{current_time}.json"
+        self.filename = f"{doc_name}_{current_time}.json"
         os.makedirs("./logs", exist_ok=True)
         # Initialize empty list to store all messages
         self.log_data = []
@@ -408,10 +410,99 @@ def add_preface_if_needed(data):
 
 
 
-def get_page_tokens(pdf_path, model="gpt-4o-2024-11-20", pdf_parser="PyPDF2"):
+def get_txt_page_tokens(txt_path, model="gpt-4o-2024-11-20", max_chars_per_page=2000):
+    """
+    Split TXT file into logical pages using reasonable heuristics.
+    
+    Args:
+        txt_path: Path to TXT file
+        model: Model name for token counting
+        max_chars_per_page: Maximum characters per page (heuristic)
+    
+    Returns:
+        List of (page_text, token_count) tuples
+    """
+    enc = tiktoken.encoding_for_model(model)
+    page_list = []
+    
+    with open(txt_path, 'r', encoding='utf-8', errors='ignore') as f:
+        full_text = f.read()
+    
+    # Strategy 1: Try to split by page breaks or form feeds
+    if '\f' in full_text:  # Form feed character
+        pages = full_text.split('\f')
+        for page_text in pages:
+            page_text = page_text.strip()
+            if page_text:  # Skip empty pages
+                token_length = len(enc.encode(page_text))
+                page_list.append((page_text, token_length))
+        print(len(page_list), "pages created based on page breaks.")
+        return page_list
+    
+    #TODO Strategy 2: Split by chapter markers (common in ebooks)
+    # chapter_patterns = [
+    #     r'\n\s*CHAPTER\s+[IVXLCDM\d]+',  # CHAPTER I, CHAPTER 1, etc.
+    #     r'\n\s*Chapter\s+[IVXLCDM\d]+',  # Chapter I, Chapter 1, etc.
+    #     r'\n\s*[Cc]hapter\s+\d+',        # chapter 1, Chapter 1
+    #     r'\n\s*CHAPTER\s+',              # CHAPTER (with blank space, no number)
+    # ]
+    # import re
+    # for pattern in chapter_patterns:
+    #     splits = re.split(pattern, full_text)
+    #     if len(splits) > 1:  # Found chapter divisions
+    #         page_list = []
+    #         for i, section in enumerate(splits):
+    #             section = section.strip()
+    #             if section:
+    #                 # Add back the chapter marker for all but the first section
+    #                 if i > 0:
+    #                     match = re.search(pattern, full_text)
+    #                     if match:
+    #                         section = match.group().strip() + '\n\n' + section
+    #                 token_length = len(enc.encode(section))
+    #                 page_list.append((section, token_length))
+    #         if page_list:
+    #             print(len(page_list), "pages created based on chapter markers.")
+    #             return page_list
+    
+    # Fallback: If no pages were created or all pages are too large, split by fixed character count
+    if not page_list or any(len(page[0]) > max_chars_per_page * 2 for page in page_list):
+        page_list = []
+        for i in range(0, len(full_text), max_chars_per_page):
+            page_text = full_text[i:i + max_chars_per_page]
+            # Try to end at a word boundary
+            if i + max_chars_per_page < len(full_text):
+                last_space = page_text.rfind(' ')
+                if last_space > max_chars_per_page * 0.8:  # Only break at space if it's not too early
+                    page_text = page_text[:last_space]
+            
+            token_length = len(enc.encode(page_text))
+            page_list.append((page_text.strip(), token_length))
+    
+    print(len(page_list), "pages created based on character count (max_chars_per_page =", max_chars_per_page, ")")
+    return page_list
+
+
+def get_page_tokens(doc_path, model="gpt-4o-2024-11-20", pdf_parser="PyPDF2"):
+    """
+    Extract pages and token counts from PDF or TXT files.
+    
+    Args:
+        doc_path: Path to PDF or TXT file, or BytesIO object
+        model: Model name for token counting
+        pdf_parser: PDF parser to use ("PyPDF2" or "PyMuPDF")
+    
+    Returns:
+        List of (page_text, token_count) tuples
+    """
+    # Handle TXT files
+    if isinstance(doc_path, str) and doc_path.lower().endswith(".txt"):
+        return get_txt_page_tokens(doc_path, model)
+    
+    # Handle PDF files (existing logic)
     enc = tiktoken.encoding_for_model(model)
     if pdf_parser == "PyPDF2":
-        pdf_reader = PyPDF2.PdfReader(pdf_path)
+        pdf_reader = PyPDF2.PdfReader(doc_path)
         page_list = []
         for page_num in range(len(pdf_reader.pages)):
             page = pdf_reader.pages[page_num]
@@ -420,11 +511,11 @@ def get_page_tokens(pdf_path, model="gpt-4o-2024-11-20", pdf_parser="PyPDF2"):
             page_list.append((page_text, token_length))
         return page_list
     elif pdf_parser == "PyMuPDF":
-        if isinstance(pdf_path, BytesIO):
-            pdf_stream = pdf_path
+        if isinstance(doc_path, BytesIO):
+            pdf_stream = doc_path
             doc = pymupdf.open(stream=pdf_stream, filetype="pdf")
-        elif isinstance(pdf_path, str) and os.path.isfile(pdf_path) and pdf_path.lower().endswith(".pdf"):
-            doc = pymupdf.open(pdf_path)
+        elif isinstance(doc_path, str) and os.path.isfile(doc_path) and doc_path.lower().endswith(".pdf"):
+            doc = pymupdf.open(doc_path)
         page_list = []
         for page in doc:
             page_text = page.get_text()

@@ -971,7 +971,7 @@ async def meta_processor(page_list, mode=None, toc_content=None, toc_page_list=N
     accuracy, incorrect_results = await verify_toc(page_list, toc_with_page_number, start_index=start_index, model=opt.model)
         
     logger.info({
-        'mode': 'process_toc_with_page_numbers',
+        'mode': mode,
         'accuracy': accuracy,
         'incorrect_results': incorrect_results
     })
@@ -1058,14 +1058,20 @@ async def tree_parser(page_list, opt, doc=None, logger=None):
 def page_index_main(doc, opt=None):
     logger = JsonLogger(doc)
     
-    is_valid_pdf = (
-        (isinstance(doc, str) and os.path.isfile(doc) and doc.lower().endswith(".pdf")) or 
+    is_valid_document = (
+        (isinstance(doc, str) and os.path.isfile(doc) and 
+         (doc.lower().endswith(".pdf") or doc.lower().endswith(".txt"))) or 
         isinstance(doc, BytesIO)
     )
-    if not is_valid_pdf:
-        raise ValueError("Unsupported input type. Expected a PDF file path or BytesIO object.")
+    if not is_valid_document:
+        raise ValueError("Unsupported input type. Expected a PDF or TXT file path, or BytesIO object.")
 
-    print('Parsing PDF...')
+    # Determine file type for processing message
+    if isinstance(doc, str) and doc.lower().endswith(".txt"):
+        print('Parsing TXT...')
+    else:
+        print('Parsing PDF...')
+    
     page_list = get_page_tokens(doc)
 
     logger.info({'total_page_number': len(page_list)})
@@ -1085,12 +1091,12 @@ def page_index_main(doc, opt=None):
         if opt.if_add_doc_description == 'yes':
             doc_description = generate_doc_description(structure, model=opt.model)
             return {
-                'doc_name': get_pdf_name(doc),
+                'doc_name': get_document_name(doc),
                 'doc_description': doc_description,
                 'structure': structure,
             }
     return {
-        'doc_name': get_pdf_name(doc),
+        'doc_name': get_document_name(doc),
         'structure': structure,
     }
 
