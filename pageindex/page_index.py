@@ -1072,7 +1072,16 @@ def page_index_main(doc, opt=None):
     else:
         print('Parsing PDF...')
     
-    page_list = get_page_tokens(doc)
+    # Pass TXT parameters to get_page_tokens
+    page_list = get_page_tokens(
+        doc,
+        model=opt.model if opt else "gpt-4o-2024-11-20",
+        txt_method=getattr(opt, 'txt_page_method', 'token'),
+        txt_tokens_per_page=getattr(opt, 'txt_tokens_per_page', 512),
+        txt_chars_per_page=getattr(opt, 'txt_chars_per_page', 2048),
+        txt_tokenizer=getattr(opt, 'txt_tokenizer', 'gpt2'),
+        txt_chunk_overlap=getattr(opt, 'txt_chunk_overlap', 10)
+    )
 
     logger.info({'total_page_number': len(page_list)})
     logger.info({'total_token': sum([page[1] for page in page_list])})

@@ -6,3 +6,7 @@ if_add_node_id: "yes"
 if_add_node_summary: "no"
 if_add_doc_description: "yes"
 if_add_node_text: "no"
+txt_page_method: "token"  # "char" or "token"
+txt_tokens_per_page: 512
+txt_chars_per_page: 2048
+txt_tokenizer: "gpt2"

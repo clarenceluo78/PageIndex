@@ -18,6 +18,14 @@ import yaml
 from pathlib import Path
 from types import SimpleNamespace as config
 
+# Add LlamaIndex import
+try:
+    from llama_index.core.node_parser.text import TokenTextSplitter
+    LLAMA_INDEX_AVAILABLE = True
+except ImportError:
+    LLAMA_INDEX_AVAILABLE = False
+    print("Warning: llama-index not available. Token-based TXT splitting will fall back to character-based.")
+
 CHATGPT_API_KEY = os.getenv("CHATGPT_API_KEY")
 
 
@@ -410,63 +418,54 @@ def add_preface_if_needed(data):
 
 
 
-def get_txt_page_tokens(txt_path, model="gpt-4o-2024-11-20", max_chars_per_page=2000):
+def get_txt_page_tokens(txt_path, model="gpt-4o-2024-11-20", max_chars_per_page=2048, 
+                       method="token", tokens_per_page=512, tokenizer_name="gpt2", chunk_overlap=10):
     """
-    Split TXT file into logical pages using reasonable heuristics.
+    Split TXT file into logical pages using character or token-based segmentation.
     
     Args:
         txt_path: Path to TXT file
-        model: Model name for token counting
-        max_chars_per_page: Maximum characters per page (heuristic)
+        model: Model name for token counting (for final token count)
+        max_chars_per_page: Maximum characters per page (for char method)
+        method: Segmentation method ("char" or "token")
+        tokens_per_page: Number of tokens per page (for token method)
+        tokenizer_name: Name of the tokenizer encoding (e.g., "gpt2", "cl100k_base")
+        chunk_overlap: Number of tokens to overlap between chunks (for token method)
     
     Returns:
         List of (page_text, token_count) tuples
     """
     enc = tiktoken.encoding_for_model(model)
-    page_list = []
     
     with open(txt_path, 'r', encoding='utf-8', errors='ignore') as f:
         full_text = f.read()
     
-    # Strategy 1: Try to split by page breaks or form feeds
-    if '\f' in full_text:  # Form feed character
-        pages = full_text.split('\f')
-        for page_text in pages:
-            page_text = page_text.strip()
-            if page_text:  # Skip empty pages
-                token_length = len(enc.encode(page_text))
-                page_list.append((page_text, token_length))
-        print(len(page_list), "pages created based on page breaks.")
-        return page_list
+    if method == "token" and LLAMA_INDEX_AVAILABLE:
+        # Use token-based segmentation with LlamaIndex
+        try:
+            tokenizer = tiktoken.get_encoding(tokenizer_name)
+            text_splitter = TokenTextSplitter(
+                chunk_size=tokens_per_page,
+                chunk_overlap=chunk_overlap,
+                tokenizer=tokenizer.encode
+            )
+            chunks = text_splitter.split_text(full_text)
+            
+            page_list = []
+            for chunk in chunks:
+                token_length = len(enc.encode(chunk))
+                page_list.append((chunk.strip(), token_length))
+            
+            print(f"{len(page_list)} pages created using token-based segmentation (tokens_per_page = {tokens_per_page})")
+            return page_list
+            
+        except Exception as e:
+            print(f"Token-based segmentation failed: {e}")
+            print("Falling back to character-based segmentation...")
+            method = "char"
     
-    #TODO Strategy 2: Split by chapter markers (common in ebooks)
-    # chapter_patterns = [
-    #     r'\n\s*CHAPTER\s+[IVXLCDM\d]+',  # CHAPTER I, CHAPTER 1, etc.
-    #     r'\n\s*Chapter\s+[IVXLCDM\d]+',  # Chapter I, Chapter 1, etc.
-    #     r'\n\s*[Cc]hapter\s+\d+',        # chapter 1, Chapter 1
-    #     r'\n\s*CHAPTER\s+',              # CHAPTER (with blank space, no number)
-    # ]
-    # import re
-    # for pattern in chapter_patterns:
-    #     splits = re.split(pattern, full_text)
-    #     if len(splits) > 1:  # Found chapter divisions
-    #         page_list = []
-    #         for i, section in enumerate(splits):
-    #             section = section.strip()
-    #             if section:
-    #                 # Add back the chapter marker for all but the first section
-    #                 if i > 0:
-    #                     match = re.search(pattern, full_text)
-    #                     if match:
-    #                         section = match.group().strip() + '\n\n' + section
-    #                 token_length = len(enc.encode(section))
-    #                 page_list.append((section, token_length))
-    #         if page_list:
-    #             print(len(page_list), "pages created based on chapter markers.")
-    #             return page_list
-    
-    # Fallback: If no pages were created or all pages are too large, split by fixed character count
-    if not page_list or any(len(page[0]) > max_chars_per_page * 2 for page in page_list):
+    # Character-based segmentation (fallback or explicit choice)
+    if method == "char" or not LLAMA_INDEX_AVAILABLE:
         page_list = []
         for i in range(0, len(full_text), max_chars_per_page):
             page_text = full_text[i:i + max_chars_per_page]
@@ -478,12 +477,14 @@ def get_txt_page_tokens(txt_path, model="gpt-4o-2024-11-20", max_chars_per_page=
             
             token_length = len(enc.encode(page_text))
             page_list.append((page_text.strip(), token_length))
-    
-    print(len(page_list), "pages created based on character count (max_chars_per_page =", max_chars_per_page, ")")
-    return page_list
+        
+        print(f"{len(page_list)} pages created using character-based segmentation (max_chars_per_page = {max_chars_per_page})")
+        return page_list
 
 
-def get_page_tokens(doc_path, model="gpt-4o-2024-11-20", pdf_parser="PyPDF2"):
+def get_page_tokens(doc_path, model="gpt-4o-2024-11-20", pdf_parser="PyPDF2", 
+                   txt_method="token", txt_tokens_per_page=512, txt_chars_per_page=2048, 
+                   txt_tokenizer="gpt2", txt_chunk_overlap=10):
     """
     Extract pages and token counts from PDF or TXT files.
     
@@ -491,13 +492,26 @@ def get_page_tokens(doc_path, model="gpt-4o-2024-11-20", pdf_parser="PyPDF2"):
         doc_path: Path to PDF or TXT file, or BytesIO object
         model: Model name for token counting
         pdf_parser: PDF parser to use ("PyPDF2" or "PyMuPDF")
+        txt_method: TXT segmentation method ("char" or "token")
+        txt_tokens_per_page: Number of tokens per page for TXT files
+        txt_chars_per_page: Number of characters per page for TXT files
+        txt_tokenizer: Tokenizer encoding name for TXT files
+        txt_chunk_overlap: Token overlap between chunks for TXT files
     
     Returns:
         List of (page_text, token_count) tuples
     """
     # Handle TXT files
     if isinstance(doc_path, str) and doc_path.lower().endswith(".txt"):
-        return get_txt_page_tokens(doc_path, model)
+        return get_txt_page_tokens(
+            doc_path, 
+            model=model,
+            max_chars_per_page=txt_chars_per_page,
+            method=txt_method,
+            tokens_per_page=txt_tokens_per_page,
+            tokenizer_name=txt_tokenizer,
+            chunk_overlap=txt_chunk_overlap
+        )
     
     # Handle PDF files (existing logic)
     enc = tiktoken.encoding_for_model(model)

@@ -1,5 +1,6 @@
 import argparse
 import os
+import json
 from pageindex import *
 
 if __name__ == "__main__":
@@ -10,7 +11,7 @@ if __name__ == "__main__":
     parser.add_argument('--model', type=str, default='gpt-4o-2024-11-20', help='Model to use')
     parser.add_argument('--toc-check-pages', type=int, default=20, 
                       help='Number of pages to check for table of contents')
-    parser.add_argument('--max-pages-per-node', type=int, default=10,
+    parser.add_argument('--max-pages-per-node', type=int, default=20,
                       help='Maximum number of pages per node')
     parser.add_argument('--max-tokens-per-node', type=int, default=20000,
                       help='Maximum number of tokens per node')
@@ -22,6 +23,19 @@ if __name__ == "__main__":
                       help='Whether to add doc description to the doc')
     parser.add_argument('--if-add-node-text', type=str, default='no',
                       help='Whether to add text to the node')
+    
+    # Add TXT processing arguments
+    parser.add_argument('--txt-method', type=str, default='token', choices=['char', 'token'],
+                      help='TXT segmentation method: "char" or "token" (default: token)')
+    parser.add_argument('--txt-tokens-per-page', type=int, default=1024,
+                      help='Number of tokens per page for TXT files (default: 1024)')
+    parser.add_argument('--txt-chars-per-page', type=int, default=2048,
+                      help='Number of characters per page for TXT files (default: 2048)')
+    parser.add_argument('--txt-tokenizer', type=str, default='gpt2',
+                      help='Tokenizer encoding name for TXT files (default: gpt2)')
+    parser.add_argument('--txt-chunk-overlap', type=int, default=5,
+                      help='Token overlap between chunks for TXT files (default: 5)')
+    
     args = parser.parse_args()
     
     # Determine document path (support both --doc_path and --pdf_path for backward compatibility)
@@ -49,7 +63,12 @@ if __name__ == "__main__":
         if_add_node_id=args.if_add_node_id,
         if_add_node_summary=args.if_add_node_summary,
         if_add_doc_description=args.if_add_doc_description,
-        if_add_node_text=args.if_add_node_text
+        if_add_node_text=args.if_add_node_text,
+        txt_page_method=args.txt_method,
+        txt_tokens_per_page=args.txt_tokens_per_page,
+        txt_chars_per_page=args.txt_chars_per_page,
+        txt_tokenizer=args.txt_tokenizer,
+        txt_chunk_overlap=args.txt_chunk_overlap
     )
 
 
